@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "wallabyjs.console-ninja",
+    "ritwickdey.liveserver",
+    "ms-vscode.live-server",
+    "wallabyjs.wallaby-vscode"
+  ]
+}

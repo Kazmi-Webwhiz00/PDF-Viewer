@@ -213,7 +213,7 @@ function kv_register_pdf_viewer_post_type() {
         'public'             => true, // Makes it visible both on the front end and in the admin
         'has_archive'        => true,
         'rewrite'            => array( 
-            'slug'       => 'pdf-viewer', // Customize the URL slug here
+            'slug'       => 'pdf', // Customize the URL slug here
             'with_front' => false,        // Set to false if you don't want the front base included
         ),
         'supports'           => array( 'title', 'thumbnail' ), // Customize as needed

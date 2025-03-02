@@ -8,38 +8,17 @@ function kv_pdf_viewer_shortcode() {
     global $post;
 
     // Ensure a valid PDF Viewer post
-    if ( !isset($post->ID) || get_post_type($post->ID) !== 'pdf_viewer' ) {
-        return '<p>' . __('Invalid PDF Viewer post.', 'kv-pdf-viewer') . '</p>';
-    }
+    $pdf_document = get_post_meta( $post->ID, '_kv_pdf_file', true );
 
-    $post_id = $post->ID;
-    $container_id = 'kv_pdf_viewer_' . $post_id;
-    
-    // Retrieve the existing PDF document from post meta.
-// Retrieve the stored value to verify that it was saved correctly
-
-$pdf_document = get_post_meta( $post->ID, '_kv_pdf_file', true );
-$pdf_file = str_replace('"', "'", $pdf_document);
-// error_log("PDF Document6 (decoded): " . print_r($pdf_file, true));
-
-// error_log("PDF Document JSON Decode Error: " . print_r($pdf_document, true));
+    // Decode JSON if it exists.
+    $pdf_data = $pdf_document ? json_decode( $pdf_document, true ) : array();
+    $pdf_url   = isset( $pdf_data['url'] ) ? $pdf_data['url'] : '';
+    $pdf_title = isset( $pdf_data['title'] ) ? $pdf_data['title'] : '';
 
 // If no PDF data is stored, return a message.
 if ( empty( $pdf_document ) ) {
-    error_log("PDF Document: " . print_r($pdf_document, true));
     return '<p>No PDF uploaded.</p>';
 }
-
-// error_log("PDF Document1 (decoded): " . print_r($pdf_data, true));
-
-// Check if JSON decoding was successful
-if ( json_last_error() !== JSON_ERROR_NONE ) {
-    error_log("PDF Document JSON Decode Error: " . json_last_error_msg());
-    return '<p>Error reading PDF data.</p>';
-}
-
-$pdf_data = json_decode($pdf_document, true);
-error_log("PDF Document1 (decoded): " . print_r($pdf_data, true));
 
 // Check if the URL exists in the decoded data
 if ( empty($pdf_data['url']) ) {
@@ -84,9 +63,9 @@ if ( empty($pdf_data['url']) ) {
     <div 
         id="<?php echo esc_attr($container_id); ?>" 
         class="kv-pdf-viewer"
-        data-pdf-url="<?php echo $pdf_data['url']; ?>"
+        data-pdf-url="<?php echo $pdf_url; ?>"
         data-scale="1.3"
-        data-pdf-title="<?php echo esc_attr($pdf_data['info']['title']); ?>"
+        data-pdf-title="<?php echo esc_attr($pdf_title); ?>"
     >
         <?php echo $viewer_html; ?>
     </div>

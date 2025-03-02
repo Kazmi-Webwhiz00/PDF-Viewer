@@ -72,7 +72,7 @@ class PDFDocumentProperties {
     this.dialog = dialog;
     this.fields = fields;
     this.overlayManager = overlayManager;
-    // this.l10n = l10n;
+    this.l10n = l10n;
     this._fileNameLookup = fileNameLookup;
 
     this.#reset();
@@ -139,7 +139,7 @@ class PDFDocumentProperties {
     this.#fieldData = Object.freeze({
       fileName,
       fileSize,
-      title: info.Title,
+      title: fileName,
       author: info.Author,
       subject: info.Subject,
       keywords: info.Keywords,
@@ -198,7 +198,6 @@ class PDFDocumentProperties {
 
   #reset() {
     this.pdfDocument = null;
-
     this.#fieldData = null;
     this._dataAvailableCapability = Promise.withResolvers();
     this._currentPageNumber = 1;
@@ -223,10 +222,16 @@ class PDFDocumentProperties {
     }
   }
 
-  async #parseFileSize(b = 0) {
-    const kb = b / 1024,
-      mb = kb / 1024;
-    return;
+  async #parseFileSize(bytes = 0) {
+    if (bytes < 1024) {
+      return bytes + " bytes";
+    } else if (bytes < 1024 * 1024) {
+      return (bytes / 1024).toFixed(2) + " KB";
+    } else if (bytes < 1024 * 1024 * 1024) {
+      return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    } else {
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+    }
   }
 
   async #parsePageSize(pageSizeInches, pagesRotation) {
@@ -241,18 +246,20 @@ class PDFDocumentProperties {
       };
     }
     const isPortrait = isPortraitOrientation(pageSizeInches),
-      nonMetric = NON_METRIC_LOCALES.includes("");
+      // For this example, we assume non-metric (inches); adjust as needed.
+      nonMetric = true;
 
     let sizeInches = {
       width: Math.round(pageSizeInches.width * 100) / 100,
       height: Math.round(pageSizeInches.height * 100) / 100,
     };
-    // 1in == 25.4mm; no need to round to 2 decimals for millimeters.
+    // Compute millimeters in case we need them for matching.
     let sizeMillimeters = {
       width: Math.round(pageSizeInches.width * 25.4 * 10) / 10,
       height: Math.round(pageSizeInches.height * 25.4 * 10) / 10,
     };
 
+    // Try to get the standard page name based on inches or millimeters.
     let nameId =
       getPageName(sizeInches, isPortrait, US_PAGE_NAMES) ||
       getPageName(sizeMillimeters, isPortrait, METRIC_PAGE_NAMES);
@@ -264,9 +271,7 @@ class PDFDocumentProperties {
         Number.isInteger(sizeMillimeters.height)
       )
     ) {
-      // Attempt to improve the page name detection by falling back to fuzzy
-      // matching of the metric dimensions, to account for e.g. rounding errors
-      // and/or PDF files that define the page sizes in an imprecise manner.
+      // Fallback: use fuzzy matching to account for rounding errors.
       const exactMillimeters = {
         width: pageSizeInches.width * 25.4,
         height: pageSizeInches.height * 25.4,
@@ -276,15 +281,12 @@ class PDFDocumentProperties {
         height: Math.round(sizeMillimeters.height),
       };
 
-      // Try to avoid false positives, by only considering "small" differences.
       if (
         Math.abs(exactMillimeters.width - intMillimeters.width) < 0.1 &&
         Math.abs(exactMillimeters.height - intMillimeters.height) < 0.1
       ) {
         nameId = getPageName(intMillimeters, isPortrait, METRIC_PAGE_NAMES);
         if (nameId) {
-          // Update *both* sizes, computed above, to ensure that the displayed
-          // dimensions always correspond to the detected page name.
           sizeInches = {
             width: Math.round((intMillimeters.width / 25.4) * 100) / 100,
             height: Math.round((intMillimeters.height / 25.4) * 100) / 100,
@@ -294,31 +296,42 @@ class PDFDocumentProperties {
       }
     }
 
-    const [{ width, height }, unit, name, orientation] = await Promise.all([
-      nonMetric ? sizeInches : sizeMillimeters,
-      // this.l10n.get(
-      //   nonMetric
-      //     ? "pdfjs-document-properties-page-size-unit-inches"
-      //     : "pdfjs-document-properties-page-size-unit-millimeters"
-      // ),
-      nameId && "",
-      // this.l10n.get(
-      //   isPortrait
-      //     ? "pdfjs-document-properties-page-size-orientation-portrait"
-      //     : "pdfjs-document-properties-page-size-orientation-landscape"
-      // ),
-    ]);
-
-    return;
+    // Determine the unit string.
+    const unit = nonMetric ? "in" : "mm";
+    // Determine the orientation.
+    const orientationStr = isPortrait ? "portrait" : "landscape";
+    // Map the nameId to a human-readable page name.
+    let pageName;
+    if (nameId) {
+      // In our US_PAGE_NAMES, keys are "8.5x11" and "8.5x14".
+      // Here we translate them to display names.
+      if (nameId === US_PAGE_NAMES["8.5x11"]) {
+        pageName = "Letter";
+      } else if (nameId === US_PAGE_NAMES["8.5x14"]) {
+        pageName = "Legal";
+      } else {
+        pageName = "";
+      }
+    } else {
+      pageName = "Custom";
+    }
+    // Return the formatted string. For non-metric, we show inches.
+    return `${sizeInches.width} × ${sizeInches.height} ${unit} (${pageName}, ${orientationStr})`;
   }
 
   async #parseDate(inputDate) {
     const dateObj = PDFDateString.toDateObject(inputDate);
-    return (dateObj = undefined);
+    if (!dateObj) {
+      return "-";
+    }
+    // Format the date as "Jun 13, 2004"
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return dateObj.toLocaleDateString(undefined, options);
   }
 
   #parseLinearization(isLinearized) {
-    return;
+    // Return a formatted string indicating if the document is linearized.
+    return isLinearized ? "Yes" : "No";
   }
 }
 

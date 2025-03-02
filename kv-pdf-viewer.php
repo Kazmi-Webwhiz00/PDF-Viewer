@@ -184,7 +184,8 @@ function add_module_type_attribute( $tag, $handle, $src ) {
 add_filter( 'script_loader_tag', 'add_module_type_attribute', 10, 3 );
 
 require_once plugin_dir_path(__FILE__) . 'includes/kv-pdf-shortcode.php';
-
+require_once plugin_dir_path( __FILE__ ) . 'html-sitemap.php';
+require_once plugin_dir_path( __FILE__ ) . 'admin-docs.php';
 
 
 /**
@@ -319,3 +320,4 @@ function kv_save_pdf_file( $post_id ) {
     }
 }
 add_action( 'save_post', 'kv_save_pdf_file' );
+

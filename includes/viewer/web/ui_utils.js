@@ -825,6 +825,7 @@ function apiPageModeToSidebarView(mode) {
 }
 
 function toggleCheckedBtn(button, toggle, view = null) {
+  console.log("::Entered toggleCheckedBtn");
   button.classList.toggle("toggled", toggle);
   button.setAttribute("aria-checked", toggle);
 

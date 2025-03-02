@@ -22,11 +22,11 @@ jQuery(document).ready(function ($) {
       mediaUploader = wp.media({
         title: kv_pdf_upload_data.title,
         button: {
-          text: kv_pdf_upload_data.buttonText,
+          text: kv_pdf_upload_data.uploadedText,
         },
         multiple: false,
       });
-
+      let pdfFile = {};
       // When a file is selected, update the preview and hidden input.
       mediaUploader.on("select", function () {
         var attachment = mediaUploader
@@ -35,8 +35,32 @@ jQuery(document).ready(function ($) {
           .first()
           .toJSON();
         if (attachment.mime === "application/pdf") {
+          console.log("::attachment", attachment.url);
           // Update the hidden input with the new PDF URL.
-          $("#kv_pdf_file").val(attachment.url);
+          var pdfDocument = {
+            url: attachment.url,
+            info: {
+              title: attachment.title || "Untitled PDF",
+              // You can add additional metadata here if needed.
+            },
+            getDownloadInfo: function () {
+              return Promise.reject(
+                new Error("getDownloadInfo not available from attachment")
+              );
+            },
+            getPageLayout: function () {
+              return Promise.reject(
+                new Error("getPageLayout not available from attachment")
+              );
+            },
+            getOpenAction: function () {
+              return Promise.reject(
+                new Error("getOpenAction not available from attachment")
+              );
+            },
+          };
+          pdfFile = JSON.stringify(pdfDocument);
+          $("#kv_pdf_file").val(pdfFile);
 
           // Build the new preview HTML that includes the Upload PDF button.
           var previewHtml =
@@ -45,13 +69,12 @@ jQuery(document).ready(function ($) {
             "</button></p>";
           previewHtml +=
             '<iframe src="' +
-            attachment.url +
+            pdfDocument.url +
             '" width="100%" height="400"></iframe>';
           previewHtml +=
-            '<p><input type="hidden" id="kv_pdf_file" name="kv_pdf_file" value="' +
-            attachment.url +
-            '" /></p>';
-
+            '<p><input type="hidden" id="kv_pdf_file" name="kv_pdf_file" value=' +
+            pdfFile +
+            " /></p>";
           // Replace the container's HTML with the updated preview.
           $("#kv_pdf_upload_container").html(previewHtml);
 

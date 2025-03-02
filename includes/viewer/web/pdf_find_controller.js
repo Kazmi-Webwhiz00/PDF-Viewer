@@ -406,15 +406,16 @@ class PDFFindController {
   /**
    * @param {PDFFindControllerOptions} options
    */
-  constructor({ linkService, eventBus, updateMatchesCountOnProgress = true }) {
+  constructor({
+    state,
+    linkService,
+    eventBus,
+    updateMatchesCountOnProgress = true,
+  }) {
     this._linkService = linkService;
     this._eventBus = eventBus;
     this.#updateMatchesCountOnProgress = updateMatchesCountOnProgress;
-    this.#state = {
-      query: "",
-      type: "",
-      findPrevious: false,
-    };
+    this.#state = state;
 
     /**
      * Callback used to check if a `pageNumber` is currently visible.
@@ -865,56 +866,74 @@ class PDFFindController {
     return matches;
   }
 
-  #extractText() {
-    // Reset extraction state so we can process all pages again.
+  async #extractText() {
     this._extractTextPromises = [];
     this._pageContents = [];
     this._pageDiffs = [];
     this._hasDiacritics = [];
 
-    // Enable normalization; sometimes disabling it results in an empty items array.
     const textOptions = { disableNormalization: false };
 
     // Build an array of promises for each page extraction.
     const extractionPromises = [];
     for (let i = 0, ii = this._linkService.pagesCount; i < ii; i++) {
+      const pageIndex = i;
       const promise = this._pdfDocument
-        .getPage(i + 1)
+        .getPage(pageIndex + 1)
         .then((pdfPage) => {
-          pdfPage.getTextContent(textOptions);
+          if (pdfPage.xfaData) {
+            const xfa = pdfPage.getXfa();
+            return XfaText.textContent(xfa);
+          }
+          let getTextContentFn =
+            pdfPage.getTextContent ||
+            Object.getPrototypeOf(pdfPage).getTextContent;
 
-          console.log("::pdfPage", pdfPage.getTextContent(textOptions));
+          if (typeof getTextContentFn !== "function") {
+            throw new Error(
+              "getTextContent is not available on this page object."
+            );
+          }
+
+          return getTextContentFn.call(pdfPage, textOptions);
         })
         .then((textContent) => {
-          const strBuf = [];
-          if (!textContent.items || textContent.items.length === 0) {
-            console.warn(`No text items found for page ${i + 1}`);
-          }
-          for (const textItem of textContent.items) {
-            strBuf.push(textItem.str);
-            if (textItem.hasEOL) {
-              strBuf.push("\n");
+          let extractedText = "";
+
+          if (typeof textContent === "string") {
+            extractedText = textContent;
+          } else if (textContent.items && textContent.items.length > 0) {
+            const strBuf = [];
+            for (const textItem of textContent.items) {
+              strBuf.push(textItem.str);
+              if (textItem.hasEOL) {
+                strBuf.push("\n");
+              }
             }
+            extractedText = strBuf.join("");
+          } else {
+            console.warn(`No text items found for page ${pageIndex + 1}`);
           }
-          const extractedText = strBuf.join("");
-          console.log("::textContent", extractedText);
-          console.log(`Extracted text for page ${i + 1}: ${extractedText}`);
-          // Normalize the extracted text and save results.
-          [this._pageContents[i], this._pageDiffs[i], this._hasDiacritics[i]] =
-            normalize(extractedText);
+          [
+            this._pageContents[pageIndex],
+            this._pageDiffs[pageIndex],
+            this._hasDiacritics[pageIndex],
+          ] = normalize(extractedText);
         })
         .catch((reason) => {
-          console.error(`Unable to get text content for page ${i + 1}`, reason);
-          // In case of error, assume no text content.
-          this._pageContents[i] = "";
-          this._pageDiffs[i] = null;
-          this._hasDiacritics[i] = false;
+          console.error(
+            `Unable to get text content for page ${pageIndex + 1}`,
+            reason
+          );
+          this._pageContents[pageIndex] = "";
+          this._pageDiffs[pageIndex] = null;
+          this._hasDiacritics[pageIndex] = false;
         });
+
       this._extractTextPromises.push(promise);
       extractionPromises.push(promise);
     }
 
-    // Return a promise that resolves when all page extractions are complete.
     return Promise.all(extractionPromises);
   }
 

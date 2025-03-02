@@ -6,47 +6,34 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/* eslint-disable */
 
 import { RenderingStates, ScrollMode, SpreadMode } from "./ui_utils.js";
 import { AppOptions } from "./app_options.js";
 import { LinkTarget } from "./pdf_link_service.js";
 import { PDFViewerApplication } from "./app.js";
 
-// --- Import PDF.js core/viewer from the CDN, instead of using local files. ---
-// import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.mjs";
-// import * as pdfjsViewer from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf_viewer.mjs";
-
-/** Show the PDF.js version for debugging. */
+/* eslint-disable-next-line no-unused-vars */
 const pdfjsVersion =
   typeof PDFJSDev !== "undefined" ? PDFJSDev.eval("BUNDLE_VERSION") : void 0;
-console.log("PDF.js Version:", pdfjsVersion);
-
+/* eslint-disable-next-line no-unused-vars */
 const pdfjsBuild =
   typeof PDFJSDev !== "undefined" ? PDFJSDev.eval("BUNDLE_BUILD") : void 0;
 
 const AppConstants =
   typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")
-    ? {
-        LinkTarget,
-        RenderingStates,
-        ScrollMode,
-        SpreadMode,
-      }
+    ? { LinkTarget, RenderingStates, ScrollMode, SpreadMode }
     : null;
 
 window.PDFViewerApplication = PDFViewerApplication;
 window.PDFViewerApplicationConstants = AppConstants;
 window.PDFViewerApplicationOptions = AppOptions;
 
-/**
- * Define (or reuse) a `getViewerConfiguration()` function,
- * which the default PDFViewerApplication.run() method needs.
- */
 function getViewerConfiguration() {
   return {
     appContainer: document.body,
@@ -282,121 +269,39 @@ function getViewerConfiguration() {
   };
 }
 
-/**
- * This function replaces the original PDFViewerApplication.open() logic
- * by using pdfjsLib.getDocument(...) to load the PDF from a dynamic URL.
- */
-function loadPDFDynamically() {
-  console.log("Initializing PDF loading...");
-
-  // 1. Get PDF URL and scale from the .kv-pdf-viewer container.
-  const viewerWrapper = document.querySelector(".kv-pdf-viewer");
-  if (!viewerWrapper) {
-    console.error("No .kv-pdf-viewer container found. Aborting PDF load.");
-    return;
-  }
-  const pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
-  const defaultScale = parseFloat(
-    viewerWrapper.getAttribute("data-scale") || "1.0"
-  );
-
-  if (!pdfUrl) {
-    console.error(
-      "No PDF URL found in .kv-pdf-viewer. Ensure 'data-pdf-url' attribute is set."
-    );
-    return;
-  }
-  console.log("PDF URL:", pdfUrl);
-
-  // 2. Set PDF.js worker source from the CDN.
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs";
-
-  // 3. Optional CMAP settings.
-  const CMAP_URL = "https://unpkg.com/browse/pdfjs-dist@4.10.38/cmaps/";
-  const CMAP_PACKED = true;
-
-  // 4. Ensure the viewer container exists.
-  const containerEl = document.getElementById("viewerContainer");
-  if (!containerEl) {
-    console.error("No element with id 'viewerContainer' found.");
-    return;
-  }
-
-  // 5. Set up the single-page viewer.
-  const eventBus = new pdfjsViewer.EventBus();
-  const pdfLinkService = new pdfjsViewer.PDFLinkService({ eventBus });
-  const pdfFindController = new pdfjsViewer.PDFFindController({
-    eventBus,
-    linkService: pdfLinkService,
-  });
-
-  const pdfSinglePageViewer = new pdfjsViewer.PDFViewer({
-    container: containerEl,
-    eventBus,
-    linkService: pdfLinkService,
-    findController: pdfFindController,
-  });
-  PDFViewerApplication.pdfViewer = pdfSinglePageViewer;
-  pdfLinkService.setViewer(pdfSinglePageViewer);
-
-  // 6. Load the PDF using pdf.js
-  console.log("Fetching PDF document...");
-  pdfjsLib
-    .getDocument({
-      url: pdfUrl,
-      cMapUrl: CMAP_URL,
-      cMapPacked: CMAP_PACKED,
-    })
-    .promise.then((pdfDocument) => {
-      console.log("PDF successfully loaded:", pdfDocument.numPages, "pages.");
-      PDFViewerApplication.pdfDocument = pdfDocument;
-      PDFViewerApplication.pdfViewer.setDocument(pdfDocument);
-      // Set document on the viewer.
-      // pdfSinglePageViewer.setDocument(pdfDocument);
-      pdfLinkService.setDocument(pdfDocument, null);
-      PDFViewerApplication.open(pdfDocument);
-
-      // Verify if the first page loads correctly.
-      pdfDocument
-        .getPage(1)
-        .then((page) => {
-          console.log("First page loaded successfully.");
-        })
-        .catch((err) => {
-          console.error("Error rendering the first page:", err);
-        });
-
-      // Set the default scale when pages initialize.
-      eventBus.on("pagesinit", () => {
-        PDFViewerApplication.pdfViewer.currentScaleValue = defaultScale;
-        pdfSinglePageViewer.currentScaleValue = defaultScale;
-        console.log("Default scale set to:", defaultScale);
-      });
-    })
-    .catch((error) => {
-      console.error("Error loading PDF:", error);
-    });
-}
-
-/**
- * Called when the DOM is ready. This runs the PDFViewerApplication to set up
- * the UI, but we've removed the original PDFViewerApplication.open(...) call
- * and replaced it with our loadPDFDynamically().
- */
 function webViewerLoad() {
-  // 1. Run the standard PDF.js viewer UI code.
-  PDFViewerApplication.run(getViewerConfiguration());
+  const config = getViewerConfiguration();
+  if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
+    // Give custom implementations of the default viewer a simpler way to
+    // set various `AppOptions`, by dispatching an event once all viewer
+    // files are loaded but *before* the viewer initialization has run.
+    const event = new CustomEvent("webviewerloaded", {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        source: window,
+      },
+    });
 
-  // 2. Remove or comment out any code that calls PDFViewerApplication.open(...)
-  //    -- We do NOT call PDFViewerApplication.open({ url: ... }) anymore.
-
-  // 3. Instead, manually load the PDF from a dynamic URL:
-  loadPDFDynamically();
+    try {
+      // Attempt to dispatch the event at the embedding `document`,
+      // in order to support cases where the viewer is embedded in
+      // a *dynamically* created <iframe> element.
+      parent.document.dispatchEvent(event);
+    } catch (ex) {
+      // The viewer could be in e.g. a cross-origin <iframe> element,
+      // fallback to dispatching the event at the current `document`.
+      console.error("webviewerloaded:", ex);
+      document.dispatchEvent(event);
+    }
+  }
+  PDFViewerApplication.run(config);
 }
 
-// The rest is standard code that ensures the viewer is initialized properly.
+// Block the "load" event until all pages are loaded, to ensure that printing
+// works in Firefox; see https://bugzilla.mozilla.org/show_bug.cgi?id=1618553
 document.blockUnblockOnload?.(true);
+
 if (
   document.readyState === "interactive" ||
   document.readyState === "complete"
@@ -406,7 +311,6 @@ if (
   document.addEventListener("DOMContentLoaded", webViewerLoad, true);
 }
 
-// Export if needed by other scripts.
 export {
   PDFViewerApplication,
   AppConstants as PDFViewerApplicationConstants,

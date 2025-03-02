@@ -57,7 +57,6 @@ class Toolbar {
    */
   constructor(options, eventBus, toolbarDensity = 0) {
     this.#opts = options;
-    console.log("::this", this.#opts);
     this.eventBus = eventBus;
     const buttons = [
       { element: options.previous, eventName: "previouspage" },
@@ -155,7 +154,6 @@ class Toolbar {
   setPagesCount(pagesCount, hasPageLabels) {
     this.pagesCount = pagesCount;
     this.hasPageLabels = hasPageLabels;
-    console.log("::updateUIState", pagesCount);
     this.#updateUIState(true);
     // Explicitly update the toolbar label (span)
     // this.#opts.numPages.textContent = pagesCount;
@@ -192,7 +190,6 @@ class Toolbar {
     const self = this;
     // The buttons within the toolbar.
     for (const { element, eventName, eventDetails, telemetry } of buttons) {
-      console.log("::buttons", buttons);
       // if (eventName !== "switchannotationeditormode") {
       element.addEventListener("click", (evt) => {
         if (eventName !== null) {
@@ -287,8 +284,6 @@ class Toolbar {
       editorStampParamsToolbar,
     } = this.#opts;
 
-    console.log("::toolbar12", this.#opts);
-
     toggleExpandedBtn(
       editorFreeTextButton,
       mode === AnnotationEditorType.FREETEXT,
@@ -324,7 +319,6 @@ class Toolbar {
     if (resetNumPages) {
       if (this.hasPageLabels) {
         opts.pageNumber.type = "text";
-        console.log("::resetNumPages", resetNumPages);
         opts.numPages.setAttribute("data-l10n-id", "pdfjs-page-of-pages");
       } else {
         opts.pageNumber.type = "number";

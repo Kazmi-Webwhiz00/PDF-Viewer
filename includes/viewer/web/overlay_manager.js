@@ -37,7 +37,7 @@ class OverlayManager {
     }
     this.#overlays.set(dialog, { canForceClose });
 
-    dialog.addEventListener("cancel", evt => {
+    dialog.addEventListener("cancel", (evt) => {
       this.#active = null;
     });
   }
@@ -78,6 +78,12 @@ class OverlayManager {
     }
     dialog.close();
     this.#active = null;
+  }
+
+  async closeIfActive(dialog) {
+    if (this.#active === dialog) {
+      await this.close(dialog);
+    }
   }
 }
 

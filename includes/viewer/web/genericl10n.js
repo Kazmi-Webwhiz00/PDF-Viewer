@@ -33,7 +33,6 @@ function createBundle(lang, text) {
   }
   return bundle;
 }
-console.log("Final check - window.FluentDOM:", window.FluentDOM);
 
 /**
  * @implements {IL10n}

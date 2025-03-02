@@ -87,7 +87,6 @@ jQuery(document).ready(function ($) {
         pdfSinglePageViewer.setDocument(pdfDocument);
         pdfLinkService.setDocument(pdfDocument, null);
         $("#page-count").text(pdfDocument.numPages);
-        console.log("PDF loaded with", pdfDocument.numPages, "pages");
       })
       .catch(function (error) {
         console.error("Error loading PDF:", error);

@@ -426,7 +426,6 @@ class PDFThumbnailView {
     this.pageLabel = typeof label === "string" ? label : null;
 
     this.anchor.setAttribute("data-l10n-args", this.#pageL10nArgs);
-    console.log("::pageL10nArgs", this.#pageL10nArgs);
 
     if (this.renderingState !== RenderingStates.FINISHED) {
       return;

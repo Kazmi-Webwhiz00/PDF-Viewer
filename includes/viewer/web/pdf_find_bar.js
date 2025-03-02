@@ -31,11 +31,7 @@ class PDFFindBar {
 
   constructor(options, mainContainer, eventBus) {
     this.opened = false;
-    console.log("::Clicked");
     this.bar = options.bar;
-    console.log(this.toggleButton);
-    console.log(options.toggleButton);
-    console.log(options);
     this.toggleButton = options.toggleButton;
     this.findField = options.findField;
     this.highlightAll = options.highlightAllCheckbox;
@@ -48,7 +44,6 @@ class PDFFindBar {
     this.findNextButton = options.findNextButton;
     this.eventBus = eventBus;
     this.#mainContainer = mainContainer;
-    console.log("::Entered", this.#mainContainer);
     const checkedInputs = new Map([
       [this.highlightAll, "highlightallchange"],
       [this.caseSensitive, "casesensitivitychange"],
@@ -69,7 +64,6 @@ class PDFFindBar {
       switch (keyCode) {
         case 13: // Enter
           if (target === this.findField) {
-            console.log("::Input", target);
             this.dispatchEvent("again", shiftKey);
           } else if (checkedInputs.has(target)) {
             target.checked = !target.checked;
@@ -101,7 +95,6 @@ class PDFFindBar {
   }
 
   dispatchEvent(type, findPrev = false) {
-    console.log("Find Event Triggered:", this.findField.value);
     this.eventBus.dispatch("find", {
       source: this,
       type,

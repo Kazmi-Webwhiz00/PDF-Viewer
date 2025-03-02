@@ -253,29 +253,36 @@ function kv_pdf_upload_callback( $post ) {
     // Add nonce for security.
     wp_nonce_field( 'kv_save_pdf_file', 'kv_pdf_file_nonce' );
 
-    // Retrieve the existing PDF URL if available.
-    $pdf_url = get_post_meta( $post->ID, '_kv_pdf_file', true );
+    // Retrieve the existing PDF document from post meta.
+    $pdf_document = get_post_meta( $post->ID, '_kv_pdf_file', true );
+
+    // ✅ Decode JSON if it exists
+    $pdf_data = $pdf_document ? json_decode( $pdf_document, true ) : null;
+
+    // ✅ Extract URL safely
+    $pdf_url = $pdf_data['url'] ?? '';
+
     ?>
     <div id="kv_pdf_upload_container">
     
         <div id="kv_pdf_preview">
-        <?php if ( $pdf_url ) : ?>
+            <?php if ( $pdf_url ) : ?>
                 <p>
-            <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'kv-pdf-viewer' ); ?></button>
-        </p>
+                    <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'kv-pdf-viewer' ); ?></button>
+                </p>
                 <iframe src="<?php echo esc_url( $pdf_url ); ?>" width="100%" height="400"></iframe>
             <?php else : ?>
                 <p><?php _e( 'No PDF uploaded. Please upload a PDF file.', 'kv-pdf-viewer' ); ?></p>
-        
-
-        <input type="hidden" id="kv_pdf_file" name="kv_pdf_file" value="<?php echo esc_url( $pdf_url ); ?>" />
-        <p>
+                <p>
             <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'kv-pdf-viewer' ); ?></button>
         </p>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
+
+        <!-- ✅ The hidden input should always be present -->
+        <input type="hidden" id="kv_pdf_file" name="kv_pdf_file" value='<?php echo esc_attr( json_encode($pdf_data) ); ?>' />
+
     </div>
-    
     <?php
 }
 
@@ -294,7 +301,21 @@ function kv_save_pdf_file( $post_id ) {
     }
     // Save or update the PDF file URL.
     if ( isset( $_POST['kv_pdf_file'] ) ) {
-        update_post_meta( $post_id, '_kv_pdf_file', esc_url_raw( $_POST['kv_pdf_file'] ) );
+        // Unslash the raw POST data to remove any unwanted escape characters
+        $raw_pdf = wp_unslash( $_POST['kv_pdf_file'] );
+        
+        // Decode JSON safely to check its validity
+        $pdf_data = json_decode( $raw_pdf, true );
+        
+        // Check if JSON decoding succeeded
+        if ( json_last_error() === JSON_ERROR_NONE ) {
+            // Store the raw JSON string in post meta
+            update_post_meta( $post_id, '_kv_pdf_file', $raw_pdf );
+            
+        } else {
+            // Log any JSON decoding errors for debugging
+            error_log('🚨 JSON Decode Error: ' . json_last_error_msg());
+        }
     }
 }
 add_action( 'save_post', 'kv_save_pdf_file' );

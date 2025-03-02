@@ -49,12 +49,12 @@ import {
   InvalidPDFException,
   isDataScheme,
   isPdfFile,
-  MissingPDFException,
+  // MissingPDFException,
   PDFWorker,
   shadow,
   stopEvent,
   TouchManager,
-  UnexpectedResponseException,
+  // UnexpectedResponseException,
   version,
 } from "./pdfjs.js";
 import { AppOptions, OptionKind } from "./app_options.js";
@@ -317,7 +317,9 @@ const PDFViewerApplication = {
         // Make sure that GlobalWorkerOptions.workerSrc is the same correct
         // "https://cdnjs.cloudflare.com/..." URL.
         if (typeof PDFJSDev === "undefined") {
-          globalThis.pdfjsWorker = await import(GlobalWorkerOptions.workerSrc);
+          globalThis.pdfjsWorker = await import(
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs"
+          );
         } else {
           await __non_webpack_import__(PDFWorker.workerSrc);
         }
@@ -401,7 +403,6 @@ const PDFViewerApplication = {
    */
   async _initializeViewerComponents() {
     const { appConfig, externalServices, l10n } = this;
-    console.log("::sidebar", appConfig);
 
     const eventBus =
       typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")
@@ -431,6 +432,16 @@ const PDFViewerApplication = {
     const downloadManager = (this.downloadManager = new DownloadManager());
 
     const findController = new PDFFindController({
+      state: {
+        query: "",
+        type: "",
+        phraseSearch: false,
+        entireWord: true,
+        highlightAll: true,
+        caseSensitive: false,
+        matchDiacritics: false,
+        findPrevious: false,
+      },
       linkService: pdfLinkService,
       eventBus,
       updateMatchesCountOnProgress:
@@ -547,7 +558,6 @@ const PDFViewerApplication = {
     }
 
     if (!this.supportsIntegratedFind && appConfig.findBar) {
-      console.log("::findBar", appConfig);
       this.findBar = new PDFFindBar(
         appConfig.findBar,
         appConfig.principalContainer,
@@ -556,6 +566,9 @@ const PDFViewerApplication = {
     }
 
     if (appConfig.annotationEditorParams) {
+      const isMozCentral =
+        typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL");
+      const supportsAbortSignal = typeof AbortSignal.any === "function";
       if (
         ((typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) ||
           typeof AbortSignal.any === "function") &&
@@ -613,7 +626,6 @@ const PDFViewerApplication = {
         const nimbusData = JSON.parse(
           AppOptions.get("nimbusDataStr") || "null"
         );
-        console.log("::toolbar1", appConfig.toolbar);
 
         this.toolbar = new Toolbar(appConfig.toolbar, eventBus, nimbusData);
       } else {
@@ -711,20 +723,46 @@ const PDFViewerApplication = {
   },
 
   async run(config) {
-    console.log("::sidebar1", config);
     await this.initialize(config);
 
     const { appConfig, eventBus } = this;
-    let file;
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      const queryString = document.location.search.substring(1);
-      const params = parseQueryString(queryString);
-      file = params.get("file") ?? AppOptions.get("defaultUrl");
-      validateFileURL(file);
-    } else if (PDFJSDev.test("MOZCENTRAL")) {
-      file = window.location.href;
-    } else if (PDFJSDev.test("CHROME")) {
-      file = AppOptions.get("defaultUrl");
+    // ✅ 1. Get the PDF URL from the `.kv-pdf-viewer` container
+    const viewerWrapper = document.querySelector(".kv-pdf-viewer");
+    let pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
+    let pdfTitle = viewerWrapper.getAttribute("data-pdf-title");
+
+    if (!viewerWrapper) {
+      console.error("🚨 No .kv-pdf-viewer container found. Aborting PDF load.");
+      return;
+    }
+
+    if (!pdfUrl) {
+      console.error(
+        "🚨 No PDF URL found in .kv-pdf-viewer. Ensure 'data-pdf-url' attribute is set."
+      );
+      return;
+    }
+
+    let file = pdfUrl;
+
+    // if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
+    //   const queryString = document.location.search.substring(1);
+    //   const params = parseQueryString(queryString);
+    //   file = params.get("file") ?? AppOptions.get("defaultUrl");
+
+    //   validateFileURL(file);
+    // } else if (PDFJSDev.test("MOZCENTRAL")) {
+    //   file = window.location.href;
+    // } else if (PDFJSDev.test("CHROME")) {
+    //   file = AppOptions.get("defaultUrl");
+    // }
+
+    if (!file) {
+      console.warn(
+        "🚨 No PDF URL provided. Using default or skipping loading."
+      );
+    } else {
+      console.log(`📄 PDF URL to be loaded: ${file}`);
     }
 
     if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
@@ -791,19 +829,21 @@ const PDFViewerApplication = {
       appConfig.findBar?.toggleButton?.classList.add("hidden");
     }
 
-    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-      if (file) {
-        this.open({ url: file });
-      } else {
-        this._hideViewBookmark();
-      }
-    } else if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
-      this.setTitleUsingUrl(file, /* downloadUrl = */ file);
-
-      this.externalServices.initPassiveLoading();
+    // if (typeof PDFJSDev === "undefined" && PDFJSDev.test("GENERIC")) {
+    if (file) {
+      this.open({ url: file, title: pdfTitle });
     } else {
-      throw new Error("Not implemented: run");
+      this._hideViewBookmark();
     }
+    // }
+    // if (PDFJSDev.test("MOZCENTRAL || CHROME")) {
+    this.setTitleUsingUrl(pdfUrl);
+
+    this.externalServices.initPassiveLoading();
+    // }
+    //  else {
+    //   throw new Error("Not implemented: run");
+    // }
   },
 
   get externalServices() {
@@ -839,7 +879,6 @@ const PDFViewerApplication = {
   },
 
   zoomReset() {
-    console.log("::zoom", this.pdfViewer.currentScaleValue);
     if (this.pdfViewer.isInPresentationMode) {
       return;
     }
@@ -1077,39 +1116,78 @@ const PDFViewerApplication = {
    *   {@link DocumentInitParameters}, and also a `originalUrl` string.
    * @returns {Promise} - Promise that is resolved when the document is opened.
    */
-  async open(pdfDocument) {
+  open(pdfDocument) {
     // If a PDF is already open, close it first.
     if (this.pdfDocument) {
-      await this.close();
+      this.close();
     }
 
-    // Set the provided document.
-    this.pdfDocument = pdfDocument;
+    const workerParams = AppOptions.getAll(OptionKind.WORKER);
+    Object.assign(GlobalWorkerOptions, workerParams);
 
-    // (Optional) Update the title.
-    // For MOZCENTRAL builds, additional handling might exist; here we simply use the document's metadata.
-    if (pdfDocument.info && pdfDocument.info.Title) {
-      this.setTitle(pdfDocument.info.Title);
-    } else {
-      this.setTitle("Untitled Document");
+    if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
+      if (pdfDocument.data && isPdfFile(pdfDocument.title)) {
+        this._contentDispositionFilename = pdfDocument.title;
+      }
+    } else if (pdfDocument.url) {
+      // The Firefox built-in viewer always calls `setTitleUsingUrl`, before
+      // `initPassiveLoading`, and it never provides an `originalUrl` here.
+      this.setTitleUsingUrl;
+      pdfDocument.originalUrl || pdfDocument.url,
+        /* downloadUrl = */ pdfDocument.url;
     }
 
-    // Update toolbar and other components with the document's total pages.
-    // Here, 'false' indicates that page labels are not used; adjust if needed.
-    // this.toolbar.setPagesCount(2, false);
+    // Set the necessary API parameters, using all the available options.
+    const apiParams = AppOptions.getAll(OptionKind.API);
+    const loadingTask = getDocument({
+      ...apiParams,
+      ...pdfDocument,
+    });
 
-    // Set the current page to 1 (using "1" as the page label).
-    // this.toolbar.setPageNumber(1, "1");
+    this.pdfLoadingTask = loadingTask;
 
-    // Continue with the rest of the viewer initialization/rendering.
-    // This call to load() preserves all the remaining functionalities.
-    if (pdfDocument) {
-      this.load(pdfDocument);
-    }
+    loadingTask.onProgress = ({ loaded, total }) => {
+      this.progress(loaded / total);
+    };
 
-    // Return a resolved promise for consistency.
-    return Promise.resolve();
+    return loadingTask.promise.then(
+      (pdfDocument) => {
+        this.load(pdfDocument);
+      },
+      (reason) => {
+        if (loadingTask !== this.pdfLoadingTask) {
+          return undefined; // Ignore errors for previously opened PDF files.
+        }
+
+        let key = "pdfjs-loading-error";
+        if (reason instanceof InvalidPDFException) {
+          key = "pdfjs-invalid-file-error";
+        } else if (reason instanceof ResponseException) {
+          key = reason.missing
+            ? "pdfjs-missing-file-error"
+            : "pdfjs-unexpected-response-error";
+        }
+        return this._documentError(key, { message: reason.message }).then(
+          () => {
+            throw reason;
+          }
+        );
+      }
+    );
   },
+
+  // (Optional) Update the title.
+  // For MOZCENTRAL builds, additional handling might exist; here we simply use the document's metadata.
+
+  // Update toolbar and other components with the document's total pages.
+  // Here, 'false' indicates that page labels are not used; adjust if needed.
+  // this.toolbar.setPagesCount(2, false);
+
+  // Set the current page to 1 (using "1" as the page label).
+  // this.toolbar.setPageNumber(1, "1");
+
+  // Continue with the rest of the viewer initialization/rendering.
+  // This call to load() preserves all the remaining functionalities.
   async download() {
     let data;
     try {
@@ -1262,8 +1340,9 @@ const PDFViewerApplication = {
     const openActionPromise = pdfDocument.getOpenAction().catch(() => {
       /* Avoid breaking initial rendering; ignoring errors. */
     });
-    this.toolbar?.setPagesCount(pdfDocument._pdfInfo.numPages, false);
-    this.secondaryToolbar?.setPagesCount(pdfDocument._pdfInfo.numPages);
+
+    this.toolbar?.setPagesCount(pdfDocument.numPages, false);
+    this.secondaryToolbar?.setPagesCount(pdfDocument.numPages);
 
     if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
       const baseUrl = location.href.split("#", 1)[0];
@@ -1881,6 +1960,7 @@ const PDFViewerApplication = {
   },
 
   triggerPrinting() {
+    console.log("::entered");
     if (this.supportsPrinting) {
       window.print();
     }
@@ -1926,7 +2006,12 @@ const PDFViewerApplication = {
     );
     eventBus._on(
       "switchannotationeditormode",
-      (evt) => (pdfViewer.annotationEditorMode = evt),
+      (evt) => {
+        if (evt.mode === AnnotationEditorType.HIGHLIGHT) {
+          console.log("Highlight mode activated.");
+        }
+        pdfViewer.annotationEditorMode = evt;
+      },
       opts
     );
     eventBus._on("print", this.triggerPrinting.bind(this), opts);
@@ -1951,11 +2036,22 @@ const PDFViewerApplication = {
       (evt) => (pdfViewer.optionalContentConfigPromise = evt.promise),
       opts
     );
-    eventBus._on(
-      "switchscrollmode",
-      (evt) => (pdfViewer.scrollMode = evt.mode),
-      opts
-    );
+    eventBus._on("switchscrollmode", (evt) => {
+      console.log("Switch Scroll Mode triggered:", evt.mode);
+      console.log("Before change, pdfViewer.scrollMode:", pdfViewer.scrollMode);
+
+      pdfViewer.scrollMode = evt.mode; // Attempt to set the mode
+      console.log("After change, pdfViewer.scrollMode:", pdfViewer.scrollMode);
+
+      setTimeout(() => {
+        console.log(
+          "Delayed check, pdfViewer.scrollMode:",
+          pdfViewer.scrollMode
+        );
+        pdfViewer.update(); // Force a UI update
+      }, 100);
+    });
+
     eventBus._on(
       "scrollmodechanged",
       onViewerModesChanged.bind(this, "scrollMode"),
@@ -2347,7 +2443,6 @@ function onPageMode({ mode }) {
 }
 
 function onNamedAction(evt) {
-  console.log("::Toogled");
   // Processing a couple of named actions that might be useful, see also
   // `PDFLinkService.executeNamedAction`.
   switch (evt.action) {
@@ -2404,6 +2499,7 @@ function onUpdateViewarea({ location }) {
 }
 
 function onViewerModesChanged(name, evt) {
+  console.log("::Entered Scroll Mode");
   if (this.isInitialViewSet && !this.pdfViewer.isInPresentationMode) {
     // Only update the storage when the document has been loaded *and* rendered.
     this.store?.set(name, evt.mode).catch(() => {

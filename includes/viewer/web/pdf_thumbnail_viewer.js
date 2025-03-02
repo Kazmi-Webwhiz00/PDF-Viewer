@@ -70,7 +70,6 @@ class PDFThumbnailViewer {
     this.renderingQueue = renderingQueue;
     this.pageColors = pageColors || null;
     this.enableHWA = enableHWA || false;
-    console.log("::this", this);
 
     this.scroll = watchScroll(
       this.container,

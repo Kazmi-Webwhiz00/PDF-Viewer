@@ -859,7 +859,6 @@ class PDFViewer {
       const mode = (this._scrollMode = ScrollMode.PAGE);
       eventBus.dispatch("scrollmodechanged", { source: this, mode });
     }
-
     this._pagesCapability.promise.then(
       () => {
         eventBus.dispatch("pagesloaded", { source: this, pagesCount });
@@ -2031,7 +2030,6 @@ class PDFViewer {
     if (!this.pdfDocument || !pageNumber) {
       return;
     }
-
     if (scrollMode === ScrollMode.PAGE) {
       this.#ensurePageViewVisible();
     } else if (this._previousScrollMode === ScrollMode.PAGE) {

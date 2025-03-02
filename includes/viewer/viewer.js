@@ -271,7 +271,6 @@ function getViewerConfiguration() {
 
 function webViewerLoad() {
   const config = getViewerConfiguration();
-  console.log("::sidebar123", config);
 
   if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
     // Give custom implementations of the default viewer a simpler way to
@@ -295,7 +294,6 @@ function webViewerLoad() {
       console.error("webviewerloaded:", ex);
       document.dispatchEvent(event);
     }
-    console.log("::sidebar12", config);
   }
   PDFViewerApplication.run(config);
 }

@@ -318,7 +318,6 @@ class PDFScriptingManager {
           this.#eventBus.dispatch("print", { source: this });
           break;
         case "println":
-          console.log(value);
           break;
         case "zoom":
           if (!isInPresentationMode) {

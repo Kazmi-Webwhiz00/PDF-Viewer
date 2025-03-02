@@ -35,7 +35,6 @@ jQuery(document).ready(function ($) {
           .first()
           .toJSON();
         if (attachment.mime === "application/pdf") {
-          console.log("::attachment", attachment.url);
           // Update the hidden input with the new PDF URL.
           var pdfDocument = {
             url: attachment.url,
@@ -59,22 +58,32 @@ jQuery(document).ready(function ($) {
               );
             },
           };
-          pdfFile = JSON.stringify(pdfDocument);
-          $("#kv_pdf_file").val(pdfFile);
+          console.log();
+          // pdfFile = JSON.stringify(pdfDocument);
+          $("#kv_pdf_url").val(pdfDocument.url);
+          $("#kv_pdf_title").val(pdfDocument.title);
 
           // Build the new preview HTML that includes the Upload PDF button.
           var previewHtml =
             '<p><button type="button" class="button" id="kv_upload_pdf_button">' +
             kv_pdf_upload_data.uploadedText +
             "</button></p>";
+
           previewHtml +=
             '<iframe src="' +
             pdfDocument.url +
-            '" width="100%" height="400"></iframe>';
+            '" width="100%" height="500"></iframe>';
+
+          // Changed the id and name from kv_pdf_file to kv_pdf_url and added a second hidden input for the title.
           previewHtml +=
-            '<p><input type="hidden" id="kv_pdf_file" name="kv_pdf_file" value=' +
-            pdfFile +
-            " /></p>";
+            "<p>" +
+            '<input type="hidden" id="kv_pdf_url" name="kv_pdf_url" value="' +
+            pdfDocument.url +
+            '" />' +
+            '<input type="hidden" id="kv_pdf_title" name="kv_pdf_title" value="' +
+            pdfDocument.info.title +
+            '" />' +
+            "</p>";
           // Replace the container's HTML with the updated preview.
           $("#kv_pdf_upload_container").html(previewHtml);
 
@@ -88,51 +97,4 @@ jQuery(document).ready(function ($) {
       mediaUploader.open();
     }
   );
-
-  // Loop through each canvas element within our PDF viewer container.
-  // $(".kv-pdf-viewer > canvas").each(function () {
-  //   alert("Hello");
-  //   var canvas = this;
-  //   var $canvas = $(canvas);
-
-  //   // Retrieve the PDF URL and scale from data attributes.
-  //   var pdfUrl = $canvas.data("pdf-url");
-  //   console.log("::", pdfUrl);
-  //   var scale = parseFloat($canvas.data("scale")) || 1.5;
-
-  //   var context = canvas.getContext("2d");
-  //   var outputScale = window.devicePixelRatio || 1;
-
-  //   // Use PDF.js to load the PDF.
-  //   pdfjsLib
-  //     .getDocument(pdfUrl)
-  //     .promise.then(function (pdf) {
-  //       // Get the first page.
-  //       pdf.getPage(1).then(function (page) {
-  //         var viewport = page.getViewport({ scale: scale });
-
-  //         // Adjust for HiDPI displays.
-  //         canvas.width = Math.floor(viewport.width * outputScale);
-  //         canvas.height = Math.floor(viewport.height * outputScale);
-  //         canvas.style.width = Math.floor(viewport.width) + "px";
-  //         canvas.style.height = Math.floor(viewport.height) + "px";
-
-  //         var transform =
-  //           outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-
-  //         var renderContext = {
-  //           canvasContext: context,
-  //           viewport: viewport,
-  //           transform: transform,
-  //         };
-
-  //         page.render(renderContext).promise.then(function () {
-  //           console.log("PDF page rendered on canvas.");
-  //         });
-  //       });
-  //     })
-  //     .catch(function (error) {
-  //       console.error("Error loading PDF: ", error);
-  //     });
-  // });
 });

@@ -603,7 +603,7 @@ const PDFViewerApplication = {
         this.overlayManager,
         eventBus,
         l10n,
-        /* fileNameLookup = */ () => this._docFilename
+        () => this._docFilename
       );
     }
 
@@ -723,13 +723,15 @@ const PDFViewerApplication = {
   },
 
   async run(config) {
-    await this.initialize(config);
-
     const { appConfig, eventBus } = this;
     // ✅ 1. Get the PDF URL from the `.kv-pdf-viewer` container
     const viewerWrapper = document.querySelector(".kv-pdf-viewer");
     let pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
     let pdfTitle = viewerWrapper.getAttribute("data-pdf-title");
+
+    this.pdfUrl = pdfUrl;
+
+    await this.initialize(config);
 
     if (!viewerWrapper) {
       console.error("🚨 No .kv-pdf-viewer container found. Aborting PDF load.");
@@ -1022,7 +1024,9 @@ const PDFViewerApplication = {
   get _docFilename() {
     // Use `this.url` instead of `this.baseUrl` to perform filename detection
     // based on the reference fragment as ultimate fallback if needed.
-    return this._contentDispositionFilename || getPdfFilenameFromUrl(this.url);
+    return (
+      this._contentDispositionFilename || getPdfFilenameFromUrl(this.pdfUrl)
+    );
   },
 
   /**
@@ -1083,6 +1087,7 @@ const PDFViewerApplication = {
     this.url = "";
     this.baseUrl = "";
     this._downloadUrl = "";
+    this.pdfUrl = "";
     this.documentInfo = null;
     this.metadata = null;
     this._contentDispositionFilename = null;
@@ -1121,15 +1126,16 @@ const PDFViewerApplication = {
     if (this.pdfDocument) {
       this.close();
     }
-
+    this.pdfUrl = pdfDocument.url;
     const workerParams = AppOptions.getAll(OptionKind.WORKER);
     Object.assign(GlobalWorkerOptions, workerParams);
 
-    if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
-      if (pdfDocument.data && isPdfFile(pdfDocument.title)) {
-        this._contentDispositionFilename = pdfDocument.title;
-      }
-    } else if (pdfDocument.url) {
+    // if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL")) {
+    if (pdfDocument.data || isPdfFile(pdfDocument.url)) {
+      this._contentDispositionFilename = pdfDocument.title;
+    }
+    // }
+    else if (pdfDocument.url) {
       // The Firefox built-in viewer always calls `setTitleUsingUrl`, before
       // `initPassiveLoading`, and it never provides an `originalUrl` here.
       this.setTitleUsingUrl;
@@ -1960,7 +1966,6 @@ const PDFViewerApplication = {
   },
 
   triggerPrinting() {
-    console.log("::entered");
     if (this.supportsPrinting) {
       window.print();
     }
@@ -2008,7 +2013,6 @@ const PDFViewerApplication = {
       "switchannotationeditormode",
       (evt) => {
         if (evt.mode === AnnotationEditorType.HIGHLIGHT) {
-          console.log("Highlight mode activated.");
         }
         pdfViewer.annotationEditorMode = evt;
       },
@@ -2037,11 +2041,7 @@ const PDFViewerApplication = {
       opts
     );
     eventBus._on("switchscrollmode", (evt) => {
-      console.log("Switch Scroll Mode triggered:", evt.mode);
-      console.log("Before change, pdfViewer.scrollMode:", pdfViewer.scrollMode);
-
       pdfViewer.scrollMode = evt.mode; // Attempt to set the mode
-      console.log("After change, pdfViewer.scrollMode:", pdfViewer.scrollMode);
 
       setTimeout(() => {
         console.log(
@@ -2499,7 +2499,6 @@ function onUpdateViewarea({ location }) {
 }
 
 function onViewerModesChanged(name, evt) {
-  console.log("::Entered Scroll Mode");
   if (this.isInitialViewSet && !this.pdfViewer.isInPresentationMode) {
     // Only update the storage when the document has been loaded *and* rendered.
     this.store?.set(name, evt.mode).catch(() => {

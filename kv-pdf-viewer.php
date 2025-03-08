@@ -3,7 +3,7 @@
  * Plugin Name: PDF Embed & SEO Optimize
  * Plugin URI: https://dross.net/#media
  * Description: PDF Embed & SEO Optimize is a powerful WordPress plugin that integrates Mozilla's PDF.js viewer to serve PDFs through a viewer URL, enhancing SEO with Schema Data, Open Graph Tags, Twitter Cards, and other Meta Tags. Also analytics tracking codes can be injected.
- * Version: 1.0.2
+ * Version: 1.0.5
  * Author: Dross:Media
  * Author URI: https://dross.net/#media
  * License: GPL v2 or later
@@ -193,7 +193,7 @@ require_once plugin_dir_path( __FILE__ ) . 'admin-docs.php';
  */
 function kv_register_pdf_viewer_post_type() {
     $labels = array(
-        'name'                  => __( 'PDF Viewers', 'kv-pdf-viewer' ),
+        'name'                  => __( 'Pdf', 'kv-pdf-viewer' ),
         'singular_name'         => __( 'PDF Viewer', 'kv-pdf-viewer' ),
         'menu_name'             => __( 'PDF Viewers', 'kv-pdf-viewer' ),
         'name_admin_bar'        => __( 'PDF Viewer', 'kv-pdf-viewer' ),

@@ -775,6 +775,8 @@ a:focus > .thumbnail,
   /* width: var(--thumbnail-width); */
   /* height: var(--thumbnail-height); */
   opacity: 0.9;
+  width: 139px !important;
+
 }
 
 a:focus > .thumbnail > .thumbnailImage,

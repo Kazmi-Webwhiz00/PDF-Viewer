@@ -310,3 +310,15 @@ function kv_save_pdf_file( $post_id ) {
 }
 add_action( 'save_post', 'kv_save_pdf_file' );
 
+
+add_filter('template_include', 'kv_load_pdf_viewer_single_template');
+function kv_load_pdf_viewer_single_template($template) {
+    if ( is_singular('pdf_viewer') ) {
+        $plugin_template = plugin_dir_path(__FILE__) . 'single-pdf_viewer.php';
+        if ( file_exists($plugin_template) ) {
+            return $plugin_template;
+        }
+    }
+    return $template;
+}
+

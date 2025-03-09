@@ -767,10 +767,16 @@ a:focus > .thumbnail,
   border-color: var(--thumbnail-selected-color) !important;
 }
 
+.thumbnail{
+  height: 211px !important;
+}
+
 .thumbnailImage {
   /* width: var(--thumbnail-width); */
   /* height: var(--thumbnail-height); */
   opacity: 0.9;
+  width: 139px !important;
+
 }
 
 a:focus > .thumbnail > .thumbnailImage,

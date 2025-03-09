@@ -71,6 +71,12 @@ function kv_docs_page_callback() {
         <p>
             When you insert this shortcode on a PDF Viewer post, it will dynamically use the current post’s data to embed the PDF.
         </p>
+        <p>
+            <strong>Embedding a Specific PDF:</strong><br>
+            The shortcode supports specifying a particular PDF by providing its custom post ID as an attribute. For example: 
+            </p>
+        <pre style="background: #f7f7f7; padding: 10px; border-radius: 4px;">[pdf_viewer id="384"]</pre>
+       
 
         <hr style="margin: 2em 0;" />
 

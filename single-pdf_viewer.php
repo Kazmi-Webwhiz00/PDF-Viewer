@@ -10,7 +10,9 @@
 ?>
 <!DOCTYPE html>
 <html >
-
+<head>
+  <?php wp_head(); // This is where Yoast will output its OG tags. ?>
+</head>
 <body >
 
 <?php

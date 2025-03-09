@@ -768,7 +768,7 @@ a:focus > .thumbnail,
 }
 
 .thumbnail{
-  width: 139px !important;
+  height: 211px !important;
 }
 
 .thumbnailImage {

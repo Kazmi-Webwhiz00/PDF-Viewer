@@ -185,7 +185,7 @@ class PDFRenderingQueue {
         return false;
       case RenderingStates.PAUSED:
         this.highestPriorityPage = view.renderingId;
-        view.resume();
+        // view.resume();
         break;
       case RenderingStates.RUNNING:
         this.highestPriorityPage = view.renderingId;

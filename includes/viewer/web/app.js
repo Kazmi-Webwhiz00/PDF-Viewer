@@ -317,9 +317,7 @@ const PDFViewerApplication = {
         // Make sure that GlobalWorkerOptions.workerSrc is the same correct
         // "https://cdnjs.cloudflare.com/..." URL.
         if (typeof PDFJSDev === "undefined") {
-          globalThis.pdfjsWorker = await import(
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs"
-          );
+          globalThis.pdfjsWorker = await import("../../../js/pdfworker.mjs");
         } else {
           await __non_webpack_import__(PDFWorker.workerSrc);
         }
@@ -725,11 +723,13 @@ const PDFViewerApplication = {
   async run(config) {
     const { appConfig, eventBus } = this;
     // ✅ 1. Get the PDF URL from the `.kv-pdf-viewer` container
-    const viewerWrapper = document.querySelector(".kv-pdf-viewer");
+    const viewerWrapper = document.querySelector(".drossmedia-pdf-viewer");
     let pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
     let pdfTitle = viewerWrapper.getAttribute("data-pdf-title");
+    let postTitle = viewerWrapper.getAttribute("data-post-title");
 
     this.pdfUrl = pdfUrl;
+    this.postTitle = postTitle;
 
     await this.initialize(config);
 
@@ -1018,7 +1018,9 @@ const PDFViewerApplication = {
     }
     const editorIndicator =
       this._hasAnnotationEditors && !this.pdfRenderingQueue.printing;
-    document.title = `${editorIndicator ? "* " : ""}${title}`;
+    document.title = this.postTitle
+      ? this.postTitle
+      : `${editorIndicator ? "* " : ""}${title}`;
   },
 
   get _docFilename() {

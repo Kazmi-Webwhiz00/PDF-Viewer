@@ -446,9 +446,9 @@ class PDFPageView {
     } finally {
       if (this.xfaLayer?.div) {
         // Pause translation when inserting the xfaLayer in the DOM.
-        this.l10n.pause();
+        // this.l10n.pause();
         this.#addLayer(this.xfaLayer.div, "xfaLayer");
-        this.l10n.resume();
+        // this.l10n.resume();
       }
       this.#dispatchLayerRendered("xfalayerrendered", error);
     }

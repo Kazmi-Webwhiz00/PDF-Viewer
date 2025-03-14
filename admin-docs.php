@@ -7,17 +7,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Add a "Docs" submenu under "PDF Viewers" in the WordPress Admin
  * for providing usage instructions and best practices.
  */
-function kv_add_docs_submenu() {
+function drossmedia_add_docs_submenu() {
     add_submenu_page(
         'edit.php?post_type=pdf_viewer', // Parent slug for "PDF Viewers"
         'Docs',                          // Page title
         'Docs',                          // Menu title
         'manage_options',                // Capability required
-        'kv-docs-page',                  // Menu slug
+        'drossmedia-docs-page',                  // Menu slug
         'drossmedia_docs_page_callback'          // Callback function
     );
 }
-add_action( 'admin_menu', 'kv_add_docs_submenu' );
+add_action( 'admin_menu', 'drossmedia_add_docs_submenu' );
 
 /**
  * Callback function to render the "Docs" page content.

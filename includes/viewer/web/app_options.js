@@ -441,10 +441,10 @@ const defaultOptions = {
     /** @type {string} */
     value:
       typeof PDFJSDev === "undefined"
-        ? "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs"
+        ? window.pdfWorkerUrl
         : PDFJSDev.test("MOZCENTRAL")
         ? "resource://pdf.js/build/pdf.worker.mjs"
-        : "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs",
+        : window.pdfWorkerUrl,
     kind: OptionKind.WORKER,
   },
 };

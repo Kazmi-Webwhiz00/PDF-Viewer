@@ -8,7 +8,7 @@
  * Author URI: https://dross.net/#media
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: kv-pdf-viewer
+ * Text Domain: drossmedia-pdf-viewer
  *  * Domain Path: /languages
  */
 
@@ -23,24 +23,60 @@ function kv_enqueue_admin_scripts( $hook ) {
 
     // Only load on post-new and post edit screens for 'pdf_viewer' post type
     if ( ( $hook === 'post-new.php' || $hook === 'post.php' ) && isset( $post ) && $post->post_type === 'pdf_viewer' ) {
+        $plugin_url = plugin_dir_url(__FILE__);
         
-        // Load Select2 CSS from a CDN
-        wp_enqueue_style( 'select2-css', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css' );
+        // Enqueue Select2 CSS
+    wp_enqueue_style('select2-css', $plugin_url . 'css/select2.min.css');
 
-        // Load Select2 JS from a CDN
-        wp_enqueue_script( 'select2-js', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js', array( 'jquery' ), null, true );
+    // Enqueue Select2 JS
+    wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), null, true);
+
 
         // Register the custom script (best practice before enqueueing)
-        wp_enqueue_script('kv-pdf-viewer', plugin_dir_url(__FILE__) . 'js/script.js', ['jquery','select2-js'], null, true);
+        wp_enqueue_script('drossmedia-pdf-viewer', plugin_dir_url(__FILE__) . 'js/script.js', ['jquery','select2-js'], null, true);
 
         // Localize script - Pass PHP data to JavaScript
         $kv_pdf_upload_data = array(
-            'title'        => __( 'Choose PDF', 'kv-pdf-viewer' ),
-            'uploadedText' => __( 'Upload PDF', 'kv-pdf-viewer' ),
-            'removeText'   => __( 'Remove PDF', 'kv-pdf-viewer' )
+            'title'        => __( 'Choose PDF', 'drossmedia-pdf-viewer' ),
+            'uploadedText' => __( 'Upload PDF', 'drossmedia-pdf-viewer' ),
+            'removeText'   => __( 'Remove PDF', 'drossmedia-pdf-viewer' )
         );
 
-        wp_localize_script( 'kv-pdf-viewer', 'kv_pdf_upload_data', $kv_pdf_upload_data );
+        wp_localize_script( 'drossmedia-pdf-viewer', 'kv_pdf_upload_data', $kv_pdf_upload_data );
+
+        // Register the custom script (best practice before enqueueing)
+        wp_enqueue_script('drossmedia-pdf-viewer-fe', plugin_dir_url(__FILE__) . 'js/fe-script.js', array('jquery'), null, true);
+
+            // Mark the script as a module
+        add_filter('script_loader_tag', function ($tag, $handle) {
+            if ($handle === 'drossmedia-pdf-viewer-fe') {
+                return str_replace('src', 'type="module" src', $tag);
+            }
+            return $tag;
+        }, 10, 2);
+        
+        // Ensure a valid PDF Viewer post
+        $pdf_document = get_post_meta( $post->ID, '_kv_pdf_file', true );
+
+        // Decode JSON if it exists.
+        $pdf_data = $pdf_document ? json_decode( $pdf_document, true ) : array();
+        $pdf_url   = isset( $pdf_data['url'] ) ? $pdf_data['url'] : '';
+
+        $kv_pdf_upload_url = array(
+            'pdfUrl'   => $pdf_url,
+        );
+
+            // Localize script: pass PDF URL, AJAX URL, nonce, and post ID.
+    wp_localize_script(
+        'drossmedia-pdf-viewer-fe',
+        'kv_pdf_upload_url',
+        array(
+            'pdfUrl'   => $pdf_url,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('kv_save_pdf_file'),
+            'post_id'  => get_the_ID(),
+        )
+    );
 
         // Finally, enqueue the script after localization
 
@@ -51,103 +87,42 @@ add_action( 'admin_enqueue_scripts', 'kv_enqueue_admin_scripts' );
 
 
 function kv_enqueue_frontend_scripts() {
-    // Register PDF.js core library
-    // wp_enqueue_script('pdfjs', 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs', array(), null, true);
-    // wp_enqueue_script('pdfjs', 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js', array(), null, true);
-    wp_register_script(
-        'pdfjs-core',
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.mjs',
-        [],
-        '3.4.120',
-        false
-    );
+    $plugin_url = plugin_dir_url(__FILE__);
+        
 
-    // Register PDF.js worker (needed for background processing)
-    wp_register_script(
-        'pdfjs-worker',
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs',
-        [],
-        '3.4.120',
-        false
-    );
-
-
-    // Register PDF.js viewer JS (the “web” viewer layer)
-    wp_register_script(
-        'pdfjs-viewer',
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf_viewer.mjs',
-        ['pdfjs-core'],
-        '3.4.120',
-        false
-    );    
+// Enqueue Select2 JS
+wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), null, true);
 
         // Register our custom initialization script.
-        // wp_register_script(
-        //     'kv-pdf-viewer-init',
-        //     plugin_dir_url(__FILE__) . 'js/fe-script.js',
-        //     ['jquery'],
-        //     '1.0.0',
-        //     false
-        // );
+        wp_register_script(
+            'drossmedia-pdf-viewer-init',
+            plugin_dir_url(__FILE__) . 'js/fe-script.js',
+            ['jquery'],
+            '1.0.0',
+            false
+        );
 
         wp_enqueue_style(
-            'kv-pdf-viewer-style',
+            'drossmedia-pdf-viewer-style',
             plugin_dir_url(__FILE__) . 'css/style.css',
             [],
             null,
             true
         );
         wp_enqueue_style(
-            'kv-viewer-style',
+            'drossmedia-viewer-style',
             plugin_dir_url(__FILE__) . 'includes/viewer/css/style.css',
             [],
             null,
             true
         );
 
-            // ENQUEUE CSS PROPERLY
-    wp_enqueue_style(
-        'kv-pdf-viewer-css',
-        plugin_dir_url(__FILE__) . 'includes/viewer/viewer.css',
-        array(),
-        null,
-        true
-    );
-
-        // Register PDF.js viewer CSS (includes default toolbar styling, etc.)
-        // wp_enqueue_style(
-        //     'pdfjs-viewer-css',
-        //     'https://unpkg.com/browse/pdfjs-dist@4.10.38/web/pdf_viewer.css',
-        //     [],
-        //     null,
-        //     true
-        // );
-
             wp_enqueue_script(
-                'fluent-dom',
-                'https://cdn.jsdelivr.net/npm/@fluent/dom@0.10.0/index.min.js',
+                'fluent-dom', $plugin_url . 'js/fluentdom.min.js',
                 array(),
                 '0.10.0',
                 true
             );
-
-        // wp_enqueue_style(
-        //     'pdfjs-viewer-css', 
-        //     plugin_dir_url(__FILE__) . 'includes/viewer/pdf_viewer.css', 
-        //     array('pdfjs-viewer'), // load after viewer.css
-        //     '1.0.0'
-        // );
-    
-
-
-    // Only enqueue these assets if the current post contains our shortcode
-    // (to avoid loading on every page).
-    if ( is_singular() ) {
-        wp_enqueue_script('pdfjs-core');
-        wp_enqueue_script('pdfjs-worker');
-        wp_enqueue_script('pdfjs-viewer');
-        // wp_enqueue_script('kv-pdf-viewer-init');
-    }
     
 }
 add_action('wp_enqueue_scripts', 'kv_enqueue_frontend_scripts');
@@ -183,7 +158,7 @@ function add_module_type_attribute( $tag, $handle, $src ) {
 }
 add_filter( 'script_loader_tag', 'add_module_type_attribute', 10, 3 );
 
-require_once plugin_dir_path(__FILE__) . 'includes/kv-pdf-shortcode.php';
+require_once plugin_dir_path(__FILE__) . 'includes/drossmedia-pdf-viewer-shortcode.php';
 require_once plugin_dir_path( __FILE__ ) . 'html-sitemap.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-docs.php';
 
@@ -193,20 +168,20 @@ require_once plugin_dir_path( __FILE__ ) . 'admin-docs.php';
  */
 function kv_register_pdf_viewer_post_type() {
     $labels = array(
-        'name'                  => __( 'Pdf', 'kv-pdf-viewer' ),
-        'singular_name'         => __( 'PDF Viewer', 'kv-pdf-viewer' ),
-        'menu_name'             => __( 'PDF Viewers', 'kv-pdf-viewer' ),
-        'name_admin_bar'        => __( 'PDF Viewer', 'kv-pdf-viewer' ),
-        'add_new'               => __( 'Add New', 'kv-pdf-viewer' ),
-        'add_new_item'          => __( 'Add New PDF Viewer', 'kv-pdf-viewer' ),
-        'new_item'              => __( 'New PDF Viewer', 'kv-pdf-viewer' ),
-        'edit_item'             => __( 'Edit PDF Viewer', 'kv-pdf-viewer' ),
-        'view_item'             => __( 'View PDF Viewer', 'kv-pdf-viewer' ),
-        'all_items'             => __( 'All PDF Viewers', 'kv-pdf-viewer' ),
-        'search_items'          => __( 'Search PDF Viewers', 'kv-pdf-viewer' ),
-        'parent_item_colon'     => __( 'Parent PDF Viewer:', 'kv-pdf-viewer' ),
-        'not_found'             => __( 'No PDF viewers found.', 'kv-pdf-viewer' ),
-        'not_found_in_trash'    => __( 'No PDF viewers found in Trash.', 'kv-pdf-viewer' ),
+        'name'                  => __( 'Pdf', 'drossmedia-pdf-viewer' ),
+        'singular_name'         => __( 'PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'menu_name'             => __( 'PDF Viewers', 'drossmedia-pdf-viewer' ),
+        'name_admin_bar'        => __( 'PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'add_new'               => __( 'Add New', 'drossmedia-pdf-viewer' ),
+        'add_new_item'          => __( 'Add New PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'new_item'              => __( 'New PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'edit_item'             => __( 'Edit PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'view_item'             => __( 'View PDF Viewer', 'drossmedia-pdf-viewer' ),
+        'all_items'             => __( 'All PDF Viewers', 'drossmedia-pdf-viewer' ),
+        'search_items'          => __( 'Search PDF Viewers', 'drossmedia-pdf-viewer' ),
+        'parent_item_colon'     => __( 'Parent PDF Viewer:', 'drossmedia-pdf-viewer' ),
+        'not_found'             => __( 'No PDF viewers found.', 'drossmedia-pdf-viewer' ),
+        'not_found_in_trash'    => __( 'No PDF viewers found in Trash.', 'drossmedia-pdf-viewer' ),
     );
 
     $args = array(
@@ -217,7 +192,7 @@ function kv_register_pdf_viewer_post_type() {
             'slug'       => 'pdf', // Customize the URL slug here
             'with_front' => false,        // Set to false if you don't want the front base included
         ),
-        'supports'           => array( 'title', 'thumbnail' ), // Customize as needed
+       'supports' => array('title', 'thumbnail'), // Customize as needed
         'capability_type'    => 'post',
         'show_in_rest'       => true, // Enable Gutenberg editor support
         'menu_position'      => 20,   // Position the menu; adjust as necessary
@@ -239,7 +214,7 @@ add_action( 'init', 'kv_register_pdf_viewer_post_type' );
 function kv_add_pdf_upload_metabox() {
     add_meta_box(
         'kv_pdf_upload',                         // Unique ID.
-        __( 'PDF Upload', 'kv-pdf-viewer' ),       // Title.
+        __( 'PDF Upload', 'drossmedia-pdf-viewer' ),       // Title.
         'kv_pdf_upload_callback',                // Callback to display the field.
         'pdf_viewer',                           // Post type.
         'normal',                               // Context.
@@ -266,13 +241,13 @@ function kv_pdf_upload_callback( $post ) {
         <div id="kv_pdf_preview">
             <?php if ( $pdf_url ) : ?>
                 <p>
-                    <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'kv-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
                 </p>
                 <iframe src="<?php echo esc_url( $pdf_url ); ?>" width="100%" height="500"></iframe>
             <?php else : ?>
-                <p><?php _e( 'No PDF uploaded. Please upload a PDF file.', 'kv-pdf-viewer' ); ?></p>
+                <p><?php _e( 'No PDF uploaded. Please upload a PDF file.', 'drossmedia-pdf-viewer' ); ?></p>
                 <p>
-                    <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'kv-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="kv_upload_pdf_button"><?php _e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
                 </p>
             <?php endif; ?>
         </div>
@@ -321,4 +296,64 @@ function kv_load_pdf_viewer_single_template($template) {
     }
     return $template;
 }
+/**
+ * AJAX handler to save PDF metadata.
+ */
+function drossmedia_ajax_save_pdf_file() {
+    // 1. Security: Verify the AJAX nonce.
+    check_ajax_referer( 'kv_save_pdf_file', 'kv_pdf_file_nonce' );
+
+    // 2. Get and validate the post ID.
+    $post_id = isset( $_POST['post_id'] ) ? intval( $_POST['post_id'] ) : 0;
+    if ( ! $post_id ) {
+        wp_send_json_error( array( 'message' => 'Invalid post ID.' ) );
+    }
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        wp_send_json_error( array( 'message' => 'You do not have permission to edit this post.' ) );
+    }
+
+    // 3. Sanitize and process incoming PDF metadata.
+    $pdf_url       = isset( $_POST['pdf_url'] ) ? esc_url_raw( $_POST['pdf_url'] ) : '';
+    $pdf_title     = isset( $_POST['kv_pdf_title'] ) ? sanitize_text_field( wp_unslash( $_POST['kv_pdf_title'] ) ) : '';
+    $creation_date = isset( $_POST['creation_date'] ) ? sanitize_text_field( wp_unslash( $_POST['creation_date'] ) ) : '';
+    $modification_date = isset( $_POST['modification_date'] ) ? sanitize_text_field( wp_unslash( $_POST['modification_date'] ) ) : '';
+    $description   = isset( $_POST['description'] ) ? sanitize_text_field( wp_unslash( $_POST['description'] ) ) : '';
+    $author   = isset( $_POST['author'] ) ? sanitize_text_field( wp_unslash( $_POST['author'] ) ) : '';
+
+
+    // 4. Verify that required fields are provided.
+    if ( empty( $pdf_url ) || empty( $pdf_title ) ) {
+        wp_send_json_error( array( 'message' => 'Missing required PDF data.' ) );
+    }
+
+    // 5. Prepare the PDF data array.
+    $pdf_data = array(
+        'url'           => $pdf_url,
+        'title'         => $pdf_title,
+        'creation_date' => $creation_date,
+        'modification_date' => $modification_date,
+        'description'   => $description,
+        'author' =>  $author
+    );
+    // 6. Save or update the PDF metadata in post meta.
+    if (!empty($pdf_data)) {
+        update_post_meta( $post_id, '_kv_pdf_file', wp_json_encode( $pdf_data ) );
+
+        wp_send_json_success( array( 'message' => 'PDF metadata saved successfully.' ) );
+    } else {
+        wp_send_json_error( array( 'message' => 'Failed to update PDF metadata.' ) );
+    }
+}
+add_action( 'wp_ajax_drossmedia_save_pdf_file', 'drossmedia_ajax_save_pdf_file' );
+add_action( 'wp_ajax_nopriv_kv_save_pdf_file', 'drossmedia_ajax_save_pdf_file' );
+
+function kv_set_pdf_worker_url() {
+    $pdf_worker_url = plugin_dir_url(__FILE__) . 'js/pdfworker.mjs';
+    ?>
+    <script>
+        window.pdfWorkerUrl = "<?php echo esc_url($pdf_worker_url); ?>";
+    </script>
+    <?php
+}
+add_action('wp_head', 'kv_set_pdf_worker_url');
 

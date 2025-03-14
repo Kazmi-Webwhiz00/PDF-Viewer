@@ -14,7 +14,7 @@ function kv_add_docs_submenu() {
         'Docs',                          // Menu title
         'manage_options',                // Capability required
         'kv-docs-page',                  // Menu slug
-        'kv_docs_page_callback'          // Callback function
+        'drossmedia_docs_page_callback'          // Callback function
     );
 }
 add_action( 'admin_menu', 'kv_add_docs_submenu' );
@@ -22,7 +22,7 @@ add_action( 'admin_menu', 'kv_add_docs_submenu' );
 /**
  * Callback function to render the "Docs" page content.
  */
-function kv_docs_page_callback() {
+function drossmedia_docs_page_callback() {
     ?>
     <div class="wrap">
         <h1 style="margin-bottom: 0.5em;">PDF Embed &amp; SEO Optimize: Docs &amp; Usage</h1>

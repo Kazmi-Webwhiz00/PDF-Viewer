@@ -724,8 +724,8 @@ const PDFViewerApplication = {
 
   async run(config) {
     const { appConfig, eventBus } = this;
-    // ✅ 1. Get the PDF URL from the `.kv-pdf-viewer` container
-    const viewerWrapper = document.querySelector(".kv-pdf-viewer");
+    // ✅ 1. Get the PDF URL from the `.drossmedia-pdf-viewer` container
+    const viewerWrapper = document.querySelector(".drossmedia-pdf-viewer");
     let pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
     let pdfTitle = viewerWrapper.getAttribute("data-pdf-title");
 
@@ -734,13 +734,15 @@ const PDFViewerApplication = {
     await this.initialize(config);
 
     if (!viewerWrapper) {
-      console.error("🚨 No .kv-pdf-viewer container found. Aborting PDF load.");
+      console.error(
+        "🚨 No .drossmedia-pdf-viewer container found. Aborting PDF load."
+      );
       return;
     }
 
     if (!pdfUrl) {
       console.error(
-        "🚨 No PDF URL found in .kv-pdf-viewer. Ensure 'data-pdf-url' attribute is set."
+        "🚨 No PDF URL found in .drossmedia-pdf-viewer. Ensure 'data-pdf-url' attribute is set."
       );
       return;
     }

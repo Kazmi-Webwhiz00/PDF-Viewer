@@ -167,7 +167,7 @@ $schema_data = array(
     <div 
     id="drossmedia-pdf-viewer-<?php echo esc_attr($post->ID); ?>" 
         class="drossmedia-pdf-viewer"
-        data-pdf-url="<?php echo $pdf_url; ?>"
+        data-pdf-url="<?php echo esc_attr($pdf_url); ?>"
         data-scale="1.3"
         data-pdf-title="<?php echo esc_attr($pdf_title); ?>"
         data-post-title="<?php echo esc_attr($post_title); ?>"

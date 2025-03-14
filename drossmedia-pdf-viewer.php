@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 
 
 
-function kv_enqueue_admin_scripts( $hook ) {
+function drossmedia_enqueue_admin_scripts( $hook ) {
     global $post;
 
     // Only load on post-new and post edit screens for 'pdf_viewer' post type
@@ -37,9 +37,9 @@ function kv_enqueue_admin_scripts( $hook ) {
 
         // Localize script - Pass PHP data to JavaScript
         $kv_pdf_upload_data = array(
-            'title'        => __( 'Choose PDF', 'drossmedia-pdf-viewer' ),
-            'uploadedText' => __( 'Upload PDF', 'drossmedia-pdf-viewer' ),
-            'removeText'   => __( 'Remove PDF', 'drossmedia-pdf-viewer' )
+            'title'        => __( 'Choose PDF', 'kv-pdf-viewer' ),
+            'uploadedText' => __( 'Upload PDF', 'kv-pdf-viewer' ),
+            'removeText'   => __( 'Remove PDF', 'kv-pdf-viewer' )
         );
 
         wp_localize_script( 'drossmedia-pdf-viewer', 'kv_pdf_upload_data', $kv_pdf_upload_data );
@@ -83,10 +83,10 @@ function kv_enqueue_admin_scripts( $hook ) {
     }
 }
 
-add_action( 'admin_enqueue_scripts', 'kv_enqueue_admin_scripts' );
+add_action( 'admin_enqueue_scripts', 'drossmedia_enqueue_admin_scripts' );
 
 
-function kv_enqueue_frontend_scripts() {
+function drossmedia_enqueue_frontend_scripts() {
     $plugin_url = plugin_dir_url(__FILE__);
         
 
@@ -95,7 +95,7 @@ wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('j
 
         // Register our custom initialization script.
         wp_register_script(
-            'drossmedia-pdf-viewer-init',
+            'kv-pdf-viewer-init',
             plugin_dir_url(__FILE__) . 'js/fe-script.js',
             ['jquery'],
             '1.0.0',
@@ -125,7 +125,7 @@ wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('j
             );
     
 }
-add_action('wp_enqueue_scripts', 'kv_enqueue_frontend_scripts');
+add_action('wp_enqueue_scripts', 'drossmedia_enqueue_frontend_scripts');
 
 function my_pdfjs_inline_override() {
     $override_script = "

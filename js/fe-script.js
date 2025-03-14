@@ -11,7 +11,7 @@ jQuery(document).ready(function ($) {
   }
 
   // Use the localized pdfUrl from PHP.
-  var pdfUrl = kv_pdf_upload_url.pdfUrl;
+  var pdfUrl = drossmedia_pdf_upload_url.pdfUrl;
   if (!pdfUrl) {
     console.log("No PDF URL provided via localization.");
     return;
@@ -40,19 +40,19 @@ jQuery(document).ready(function ($) {
           // Prepare the data for AJAX submission.
           var metadata = {
             action: "drossmedia_save_pdf_file",
-            kv_pdf_file_nonce: kv_pdf_upload_url.nonce,
+            drossmedia_pdf_file_nonce: drossmedia_pdf_upload_url.nonce,
             pdf_url: pdfUrl,
-            kv_pdf_title: title,
+            drossmedia_pdf_title: title,
             creation_date: creationDate,
             modification_date: modificationDate,
             description: description,
             author: author,
-            post_id: kv_pdf_upload_url.post_id,
+            post_id: drossmedia_pdf_upload_url.post_id,
           };
 
           // Save the extracted metadata via AJAX.
           $.ajax({
-            url: kv_pdf_upload_url.ajax_url,
+            url: drossmedia_pdf_upload_url.ajax_url,
             type: "POST",
             dataType: "json",
             data: metadata,

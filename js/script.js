@@ -1,15 +1,15 @@
 jQuery(document).ready(function ($) {
   var mediaUploader;
-  $("#kv_meta_tags").select2({
+  $("#drossmedia_meta_tags").select2({
     tags: true, // Allow users to create new tags
     tokenSeparators: [","], // Use comma as separator for new tags
     placeholder: "Enter meta tags", // Placeholder text for the field
     width: "resolve", // Ensure proper width handling
   });
   // Open media uploader when clicking the "Upload PDF" button.
-  $("#kv_pdf_upload_container").on(
+  $("#drossmedia_pdf_upload_container").on(
     "click",
-    "#kv_upload_pdf_button",
+    "#drossmedia_upload_pdf_button",
     function (e) {
       e.preventDefault();
       // If an instance already exists, open it.
@@ -20,9 +20,9 @@ jQuery(document).ready(function ($) {
 
       // Create a new media uploader instance.
       mediaUploader = wp.media({
-        title: kv_pdf_upload_data.title,
+        title: drossmedia_pdf_upload_data.title,
         button: {
-          text: kv_pdf_upload_data.uploadedText,
+          text: drossmedia_pdf_upload_data.uploadedText,
         },
         multiple: false,
       });
@@ -60,13 +60,13 @@ jQuery(document).ready(function ($) {
           };
           console.log();
           // pdfFile = JSON.stringify(pdfDocument);
-          $("#kv_pdf_url").val(pdfDocument.url);
-          $("#kv_pdf_title").val(pdfDocument.title);
+          $("#drossmedia_pdf_url").val(pdfDocument.url);
+          $("#drossmedia_pdf_title").val(pdfDocument.title);
 
           // Build the new preview HTML that includes the Upload PDF button.
           var previewHtml =
-            '<p><button type="button" class="button" id="kv_upload_pdf_button">' +
-            kv_pdf_upload_data.uploadedText +
+            '<p><button type="button" class="button" id="drossmedia_upload_pdf_button">' +
+            drossmedia_pdf_upload_data.uploadedText +
             "</button></p>";
 
           previewHtml +=
@@ -74,18 +74,18 @@ jQuery(document).ready(function ($) {
             pdfDocument.url +
             '" width="100%" height="500"></iframe>';
 
-          // Changed the id and name from kv_pdf_file to kv_pdf_url and added a second hidden input for the title.
+          // Changed the id and name from drossmedia_pdf_file to drossmedia_pdf_url and added a second hidden input for the title.
           previewHtml +=
             "<p>" +
-            '<input type="hidden" id="kv_pdf_url" name="kv_pdf_url" value="' +
+            '<input type="hidden" id="drossmedia_pdf_url" name="drossmedia_pdf_url" value="' +
             pdfDocument.url +
             '" />' +
-            '<input type="hidden" id="kv_pdf_title" name="kv_pdf_title" value="' +
+            '<input type="hidden" id="drossmedia_pdf_title" name="drossmedia_pdf_title" value="' +
             pdfDocument.info.title +
             '" />' +
             "</p>";
           // Replace the container's HTML with the updated preview.
-          $("#kv_pdf_upload_container").html(previewHtml);
+          $("#drossmedia_pdf_upload_container").html(previewHtml);
 
           // Reset mediaUploader so a new instance can be created next time.
           mediaUploader = null;

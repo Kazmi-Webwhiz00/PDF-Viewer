@@ -3,7 +3,7 @@
 /**
  * Usage: [pdf_viewer]
  */
-function kv_pdf_viewer_shortcode($atts) {
+function drossmedia_pdf_viewer_shortcode($atts) {
     global $post;
 
     // Extract shortcode attributes
@@ -19,7 +19,7 @@ function kv_pdf_viewer_shortcode($atts) {
     $post_id = !empty($atts['id']) ? intval($atts['id']) : (isset($post->ID) ? $post->ID : 0);
 
     // Ensure a valid PDF Viewer post
-    $pdf_document = get_post_meta($post_id, '_kv_pdf_file', true);
+    $pdf_document = get_post_meta($post_id, '_drossmedia_pdf_file', true);
 
     // Decode JSON if it exists.
     $pdf_data = $pdf_document ? json_decode($pdf_document, true) : array();
@@ -178,4 +178,4 @@ $schema_data = array(
 
     return ob_get_clean();
 }
-add_shortcode('pdf_viewer', 'kv_pdf_viewer_shortcode');
+add_shortcode('pdf_viewer', 'drossmedia_pdf_viewer_shortcode');

@@ -26,14 +26,14 @@ function drossmedia_enqueue_admin_scripts( $hook ) {
         $plugin_url = plugin_dir_url(__FILE__);
         
         // Enqueue Select2 CSS
-    wp_enqueue_style('select2-css', $plugin_url . 'css/select2.min.css');
+        wp_enqueue_style('select2-css', $plugin_url . 'css/select2.min.css', array(), filemtime(plugin_dir_path(__FILE__) . 'css/select2.min.css'));
 
     // Enqueue Select2 JS
-    wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), null, true);
+    wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), filemtime(plugin_dir_path(__FILE__) . 'js/select2.full.min.js'), true);
 
 
         // Register the custom script (best practice before enqueueing)
-        wp_enqueue_script('drossmedia-pdf-viewer', plugin_dir_url(__FILE__) . 'js/script.js', ['jquery','select2-js'], null, true);
+        wp_enqueue_script('drossmedia-pdf-viewer', plugin_dir_url(__FILE__) . 'js/script.js', ['jquery','select2-js'], filemtime(plugin_dir_path(__FILE__) . 'js/script.js'), true);
 
         // Localize script - Pass PHP data to JavaScript
         $drossmedia_pdf_upload_data = array(
@@ -45,7 +45,7 @@ function drossmedia_enqueue_admin_scripts( $hook ) {
         wp_localize_script( 'drossmedia-pdf-viewer', 'drossmedia_pdf_upload_data', $drossmedia_pdf_upload_data );
 
         // Register the custom script (best practice before enqueueing)
-        wp_enqueue_script('drossmedia-pdf-viewer-fe', plugin_dir_url(__FILE__) . 'js/fe-script.js', array('jquery'), null, true);
+        wp_enqueue_script('drossmedia-pdf-viewer-fe', plugin_dir_url(__FILE__) . 'js/fe-script.js', array('jquery'), filemtime(plugin_dir_path(__FILE__) . 'js/fe-script.js'), true);
 
             // Mark the script as a module
         add_filter('script_loader_tag', function ($tag, $handle) {
@@ -91,38 +91,37 @@ function drossmedia_enqueue_frontend_scripts() {
         
 
 // Enqueue Select2 JS
-wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), null, true);
+wp_enqueue_script('select2-js', $plugin_url . 'js/select2.full.min.js', array('jquery'), filemtime(plugin_dir_path(__FILE__) . 'js/select2.full.min.js'), true);
 
         // Register our custom initialization script.
         wp_register_script(
             'drossmedia-pdf-viewer-init',
             plugin_dir_url(__FILE__) . 'js/fe-script.js',
             ['jquery'],
-            '1.0.0',
-            false
-        );
+            filemtime(plugin_dir_path(__FILE__) . 'js/fe-script.js'
+        ),
+        false);
 
         wp_enqueue_style(
             'drossmedia-pdf-viewer-style',
             plugin_dir_url(__FILE__) . 'css/style.css',
             [],
-            null,
-            true
-        );
+            filemtime(plugin_dir_path(__FILE__) . 'css/style.css'
+        ),
+        true);
         wp_enqueue_style(
             'drossmedia-viewer-style',
             plugin_dir_url(__FILE__) . 'includes/viewer/css/style.css',
             [],
-            null,
-            true
-        );
+            filemtime(plugin_dir_path(__FILE__) . 'includes/viewer/css/style.css'
+        ),
+        true);
 
             wp_enqueue_script(
                 'fluent-dom', $plugin_url . 'js/fluentdom.min.js',
                 array(),
-                '0.10.0',
-                true
-            );
+                filemtime(plugin_dir_path(__FILE__) . 'js/fluentdom.min.js'
+            ), true);
     
 }
 add_action('wp_enqueue_scripts', 'drossmedia_enqueue_frontend_scripts');
@@ -241,13 +240,13 @@ function drossmedia_pdf_upload_callback( $post ) {
         <div id="drossmedia_pdf_preview">
             <?php if ( $pdf_url ) : ?>
                 <p>
-                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php _e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
                 </p>
                 <iframe src="<?php echo esc_url( $pdf_url ); ?>" width="100%" height="500"></iframe>
             <?php else : ?>
-                <p><?php _e( 'No PDF uploaded. Please upload a PDF file.', 'drossmedia-pdf-viewer' ); ?></p>
+                <p><?php esc_html_e( 'No PDF uploaded. Please upload a PDF file.', 'drossmedia-pdf-viewer' ); ?></p>
                 <p>
-                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php _e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
                 </p>
             <?php endif; ?>
         </div>
@@ -261,9 +260,11 @@ function drossmedia_pdf_upload_callback( $post ) {
 
 function drossmedia_save_pdf_file( $post_id ) {
     // Verify nonce.
-    if ( ! isset( $_POST['drossmedia_pdf_file_nonce'] ) || ! wp_verify_nonce( $_POST['drossmedia_pdf_file_nonce'], 'drossmedia_save_pdf_file' ) ) {
-        return;
-    }
+    if ( ! isset( $_POST['drossmedia_pdf_file_nonce'] ) || 
+    ! wp_verify_nonce( wp_unslash( $_POST['drossmedia_pdf_file_nonce'] ), 'drossmedia_save_pdf_file' ) ) {
+   return;
+}
+
     // Prevent autosave.
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
         return;
@@ -313,7 +314,7 @@ function drossmedia_ajax_save_pdf_file() {
     }
 
     // 3. Sanitize and process incoming PDF metadata.
-    $pdf_url       = isset( $_POST['pdf_url'] ) ? esc_url_raw( $_POST['pdf_url'] ) : '';
+    $pdf_url       = isset( $_POST['pdf_url'] ) ? esc_url_raw( wp_unslash($_POST['pdf_url'] )) : '';
     $pdf_title     = isset( $_POST['drossmedia_pdf_title'] ) ? sanitize_text_field( wp_unslash( $_POST['drossmedia_pdf_title'] ) ) : '';
     $creation_date = isset( $_POST['creation_date'] ) ? sanitize_text_field( wp_unslash( $_POST['creation_date'] ) ) : '';
     $modification_date = isset( $_POST['modification_date'] ) ? sanitize_text_field( wp_unslash( $_POST['modification_date'] ) ) : '';

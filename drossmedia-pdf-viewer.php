@@ -8,7 +8,7 @@
  * Author URI: https://dross.net/#media
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: drossmedia-pdf-viewer
+ * Text Domain: PDF-Embed-and-SEO-Optimize
  *  * Domain Path: /languages
  */
 
@@ -37,9 +37,9 @@ function drossmedia_enqueue_admin_scripts( $hook ) {
 
         // Localize script - Pass PHP data to JavaScript
         $drossmedia_pdf_upload_data = array(
-            'title'        => __( 'Choose PDF', 'drossmedia-pdf-viewer' ),
-            'uploadedText' => __( 'Upload PDF', 'drossmedia-pdf-viewer' ),
-            'removeText'   => __( 'Remove PDF', 'drossmedia-pdf-viewer' )
+            'title'        => __( 'Choose PDF', 'PDF-Embed-and-SEO-Optimize' ),
+            'uploadedText' => __( 'Upload PDF', 'PDF-Embed-and-SEO-Optimize' ),
+            'removeText'   => __( 'Remove PDF', 'PDF-Embed-and-SEO-Optimize' )
         );
 
         wp_localize_script( 'drossmedia-pdf-viewer', 'drossmedia_pdf_upload_data', $drossmedia_pdf_upload_data );
@@ -167,20 +167,20 @@ require_once plugin_dir_path( __FILE__ ) . 'admin-docs.php';
  */
 function drossmedia_register_pdf_viewer_post_type() {
     $labels = array(
-        'name'                  => __( 'Pdf', 'drossmedia-pdf-viewer' ),
-        'singular_name'         => __( 'PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'menu_name'             => __( 'PDF Viewers', 'drossmedia-pdf-viewer' ),
-        'name_admin_bar'        => __( 'PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'add_new'               => __( 'Add New', 'drossmedia-pdf-viewer' ),
-        'add_new_item'          => __( 'Add New PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'new_item'              => __( 'New PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'edit_item'             => __( 'Edit PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'view_item'             => __( 'View PDF Viewer', 'drossmedia-pdf-viewer' ),
-        'all_items'             => __( 'All PDF Viewers', 'drossmedia-pdf-viewer' ),
-        'search_items'          => __( 'Search PDF Viewers', 'drossmedia-pdf-viewer' ),
-        'parent_item_colon'     => __( 'Parent PDF Viewer:', 'drossmedia-pdf-viewer' ),
-        'not_found'             => __( 'No PDF viewers found.', 'drossmedia-pdf-viewer' ),
-        'not_found_in_trash'    => __( 'No PDF viewers found in Trash.', 'drossmedia-pdf-viewer' ),
+        'name'                  => __( 'Pdf', 'PDF-Embed-and-SEO-Optimize' ),
+        'singular_name'         => __( 'PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'menu_name'             => __( 'PDF Viewers', 'PDF-Embed-and-SEO-Optimize' ),
+        'name_admin_bar'        => __( 'PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'add_new'               => __( 'Add New', 'PDF-Embed-and-SEO-Optimize' ),
+        'add_new_item'          => __( 'Add New PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'new_item'              => __( 'New PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'edit_item'             => __( 'Edit PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'view_item'             => __( 'View PDF Viewer', 'PDF-Embed-and-SEO-Optimize' ),
+        'all_items'             => __( 'All PDF Viewers', 'PDF-Embed-and-SEO-Optimize' ),
+        'search_items'          => __( 'Search PDF Viewers', 'PDF-Embed-and-SEO-Optimize' ),
+        'parent_item_colon'     => __( 'Parent PDF Viewer:', 'PDF-Embed-and-SEO-Optimize' ),
+        'not_found'             => __( 'No PDF viewers found.', 'PDF-Embed-and-SEO-Optimize' ),
+        'not_found_in_trash'    => __( 'No PDF viewers found in Trash.', 'PDF-Embed-and-SEO-Optimize' ),
     );
 
     $args = array(
@@ -213,7 +213,7 @@ add_action( 'init', 'drossmedia_register_pdf_viewer_post_type' );
 function drossmedia_add_pdf_upload_metabox() {
     add_meta_box(
         'drossmedia_pdf_upload',                         // Unique ID.
-        __( 'PDF Upload', 'drossmedia-pdf-viewer' ),       // Title.
+        __( 'PDF Upload', 'PDF-Embed-and-SEO-Optimize' ),       // Title.
         'drossmedia_pdf_upload_callback',                // Callback to display the field.
         'pdf_viewer',                           // Post type.
         'normal',                               // Context.
@@ -240,13 +240,13 @@ function drossmedia_pdf_upload_callback( $post ) {
         <div id="drossmedia_pdf_preview">
             <?php if ( $pdf_url ) : ?>
                 <p>
-                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e( 'Upload PDF', 'PDF-Embed-and-SEO-Optimize' ); ?></button>
                 </p>
                 <iframe src="<?php echo esc_url( $pdf_url ); ?>" width="100%" height="500"></iframe>
             <?php else : ?>
-                <p><?php esc_html_e( 'No PDF uploaded. Please upload a PDF file.', 'drossmedia-pdf-viewer' ); ?></p>
+                <p><?php esc_html_e( 'No PDF uploaded. Please upload a PDF file.', 'PDF-Embed-and-SEO-Optimize' ); ?></p>
                 <p>
-                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e( 'Upload PDF', 'drossmedia-pdf-viewer' ); ?></button>
+                    <button type="button" class="button" id="drossmedia_upload_pdf_button"><?php esc_html_e('Upload PDF', 'PDF-Embed-and-SEO-Optimize' ); ?></button>
                 </p>
             <?php endif; ?>
         </div>
@@ -264,7 +264,6 @@ function drossmedia_save_pdf_file( $post_id ) {
     ! wp_verify_nonce( wp_unslash( $_POST['drossmedia_pdf_file_nonce'] ), 'drossmedia_save_pdf_file' ) ) {
    return;
 }
-
     // Prevent autosave.
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
         return;

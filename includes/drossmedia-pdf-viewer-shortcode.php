@@ -33,7 +33,7 @@ function drossmedia_pdf_viewer_shortcode($atts) {
 
     // Check if the URL exists in the decoded data
     if (empty($pdf_data['url'])) {
-        return '<p>' . __('No PDF available for this viewer.', 'drossmedia-pdf-viewer') . '</p>';
+        return '<p>' . __('No PDF available for this viewer.', 'PDF-Embed-and-SEO-Optimize') . '</p>';
     }
 
     // Path to the official PDF.js "viewer.html" in your plugin

@@ -722,7 +722,11 @@ const PDFViewerApplication = {
 
   async run(config) {
     const { appConfig, eventBus } = this;
+<<<<<<< HEAD
     // ✅ 1. Get the PDF URL from the `.drossmedia-pdf-viewer` container
+=======
+    // ✅ 1. Get the PDF URL from the `.kv-pdf-viewer` container
+>>>>>>> 46d2bdc (rebasing)
     const viewerWrapper = document.querySelector(".drossmedia-pdf-viewer");
     let pdfUrl = viewerWrapper.getAttribute("data-pdf-url");
     let pdfTitle = viewerWrapper.getAttribute("data-pdf-title");
